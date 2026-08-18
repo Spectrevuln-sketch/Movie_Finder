@@ -1,6 +1,5 @@
 FROM php:7.4-apache
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -9,48 +8,57 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    curl \
     && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql \
-    && a2dismod mpm_event mpm_worker \
-    && a2enmod mpm_prefork rewrite
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
 COPY . .
 
-# Setup Apache DocumentRoot
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
+<VirtualHost *:80>
+    DocumentRoot /var/www/html/public
 
-# Setup permissions for build
-RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
+
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction
+
 RUN npm ci
-
-# Build assets as root to avoid permission errors
 RUN npm run production
 
-RUN echo "===== ASSET =====" \
-    && wc -c public/css/app.css \
-    && wc -c public/js/app.js \
-    && echo "===== CHECK TAILWIND =====" \
-    && grep -o '\.flex' public/css/app.css | head \
-    && grep -o '\.items-center' public/css/app.css | head \
-    && grep -o '\.bg-' public/css/app.css | head
+RUN echo "=== CSS ===" && \
+    ls -lh public/css/app.css && \
+    echo "=== JS ===" && \
+    ls -lh public/js/app.js && \
+    echo "=== MANIFEST ===" && \
+    cat public/mix-manifest.json
 
-# Set permissions for runtime
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
+RUN chown -R www-data:www-data \
+    /var/www/html/storage \
+    /var/www/html/bootstrap/cache \
+    /var/www/html/public
 
-
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE ${PORT}
+EXPOSE 80
+
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
