@@ -42,13 +42,21 @@ RUN composer install \
     --no-interaction
 
 RUN npm ci
+
+# Hapus hasil build lama dari source repository
+RUN rm -f public/mix-manifest.json
+
+# Pastikan Mix bisa menulis ke public
+RUN chmod -R u+rwX public
+
 RUN npm run production
 
 RUN echo "=== CSS ===" && \
-    ls -lh public/css/app.css && \
+    ls -lah public/css/app.css && \
     echo "=== JS ===" && \
-    ls -lh public/js/app.js && \
+    ls -lah public/js/app.js && \
     echo "=== MANIFEST ===" && \
+    ls -lah public/mix-manifest.json && \
     cat public/mix-manifest.json
 
 RUN chown -R www-data:www-data \
