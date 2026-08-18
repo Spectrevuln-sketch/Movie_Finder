@@ -1,0 +1,42 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "cross-env NODE_ENV=development node node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "watch": "npm run development -- --watch",
+        "watch-poll": "npm run development -- --watch --watch-poll",
+        "hot": "cross-env NODE_ENV=development node node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "production": "cross-env NODE_ENV=production node node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+    },
+    "devDependencies": {
+        "@babel/preset-react": "^7.29.7",
+        "@types/node": "^26.2.0",
+        "@types/react": "^16.14.62",
+        "@types/react-dom": "^16.9.24",
+        "@types/webpack-env": "^1.18.6",
+        "axios": "^0.19",
+        "bootstrap": "^4.1.0",
+        "browser-sync": "^3.0.4",
+        "browser-sync-webpack-plugin": "^2.4.0",
+        "cross-env": "^5.2.1",
+        "jquery": "^3.2",
+        "laravel-mix": "^4.0.7",
+        "lodash": "^4.17.13",
+        "popper.js": "^1.12",
+        "resolve-url-loader": "^2.3.1",
+        "sass": "^1.15.2",
+        "sass-loader": "^7.1.0",
+        "tailwindcss": "^1.9.6",
+        "ts-loader": "^8.4.0",
+        "typescript": "^4.9.5",
+        "vue": "^2.5.17"
+    },
+    "dependencies": {
+        "@inertiajs/inertia": "^0.11.1",
+        "@inertiajs/inertia-react": "^0.8.1",
+        "framer-motion": "^4.1.17",
+        "react": "^16.14.0",
+        "react-dom": "^16.14.0",
+        "three": "^0.149.0"
+    }
+}
