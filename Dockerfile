@@ -16,13 +16,19 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql \
-    \
-    # Apache MPM:
-    # PHP 7.4 Apache mod_php harus menggunakan prefork.
-    && a2dismod mpm_event mpm_worker mpm_prefork || true \
-    && a2enmod mpm_prefork rewrite \
-    \
     && rm -rf /var/lib/apt/lists/*
+
+
+# ============================================================
+# Apache MPM - FORCE PREFORK ONLY
+# ============================================================
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
+    /etc/apache2/mods-enabled/mpm_*.conf \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.load \
+    /etc/apache2/mods-enabled/mpm_prefork.load \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.conf \
+    /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && a2enmod rewrite
 
 
 # ============================================================
@@ -38,7 +44,7 @@ WORKDIR /var/www/html
 
 
 # ============================================================
-# Copy Laravel application
+# Copy application
 # ============================================================
 COPY . .
 
@@ -64,7 +70,7 @@ EOF
 
 
 # ============================================================
-# Laravel PHP dependencies
+# Laravel dependencies
 # ============================================================
 RUN composer install \
     --no-dev \
@@ -79,49 +85,45 @@ RUN npm ci
 
 
 # ============================================================
-# Clean old frontend build artifacts
+# Clean frontend build
 # ============================================================
 RUN rm -rf \
     public/css \
     public/js \
     public/mix-manifest.json
 
-
-# ============================================================
-# Recreate writable asset directories
-# ============================================================
 RUN mkdir -p \
     public/css \
     public/js
 
-
-# ============================================================
-# Temporary permission for Laravel Mix build
-# ============================================================
 RUN chmod -R 777 public
 
 
 # ============================================================
-# Build React + TypeScript + Tailwind using Laravel Mix
+# Build frontend
 # ============================================================
 RUN npm run production
 
 
 # ============================================================
-# Verify generated assets
+# Verify frontend assets
 # ============================================================
-RUN echo "========================================" && \
-    echo "FRONTEND BUILD RESULT" && \
-    echo "========================================" && \
-    echo "--- CSS ---" && \
-    ls -lah public/css/app.css && \
-    echo "--- JS ---" && \
-    ls -lah public/js/app.js && \
-    echo "--- MIX MANIFEST ---" && \
-    ls -lah public/mix-manifest.json && \
-    echo "--- APACHE MPM ---" && \
-    apache2ctl -M | grep mpm && \
-    echo "========================================"
+RUN echo "========================================" \
+    && echo "FRONTEND BUILD" \
+    && echo "========================================" \
+    && ls -lah public/css/app.css \
+    && ls -lah public/js/app.js \
+    && ls -lah public/mix-manifest.json
+
+
+# ============================================================
+# Verify Apache MPM
+# Must show ONLY mpm_prefork
+# ============================================================
+RUN echo "========================================" \
+    && echo "APACHE MPM" \
+    && echo "========================================" \
+    && apache2ctl -M | grep mpm
 
 
 # ============================================================
