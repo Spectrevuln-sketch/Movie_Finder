@@ -45,7 +45,8 @@ COPY composer.json composer.lock ./
 # ============================================================
 RUN composer install \
     --no-dev \
-    --optimize-autoloader \
+    --no-autoloader \
+    --no-scripts \
     --no-interaction \
     --prefer-dist
 
@@ -53,6 +54,14 @@ RUN composer install \
 # Copy rest of application
 # ============================================================
 COPY . .
+
+# ============================================================
+# Finish composer autoload generation and run scripts
+# ============================================================
+RUN composer dump-autoload \
+    --no-dev \
+    --optimize \
+    --no-interaction
 
 # ============================================================
 # Apache VirtualHost
