@@ -27,13 +27,21 @@ COPY . .
 # Setup Apache DocumentRoot
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
+# Setup permissions for build
+RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
+
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN npm install
-RUN npm run production
+RUN chown -R node:node .
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Build assets as node user
+USER node
+RUN npm run production
+USER root
+
+# Set permissions for runtime
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 
 # Startup script to handle PORT and migration
 COPY <<EOF /usr/local/bin/docker-entrypoint.sh
