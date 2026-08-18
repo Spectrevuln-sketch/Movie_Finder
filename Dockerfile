@@ -43,14 +43,17 @@ RUN composer install \
 
 RUN npm ci
 
-# Hapus hasil build lama dari source repository
-RUN rm -f public/mix-manifest.json
+# Clean frontend build artifacts
+RUN rm -rf public/css public/js public/mix-manifest.json
 
-# Pastikan Mix bisa menulis ke public
-RUN chmod -R u+rwX public
+# Recreate writable directories
+RUN mkdir -p public/css public/js
+RUN chmod -R 777 public/css public/js
 
+# Build frontend
 RUN npm run production
 
+# Verify generated assets
 RUN echo "=== CSS ===" && \
     ls -lah public/css/app.css && \
     echo "=== JS ===" && \
@@ -59,6 +62,7 @@ RUN echo "=== CSS ===" && \
     ls -lah public/mix-manifest.json && \
     cat public/mix-manifest.json
 
+# Runtime permissions
 RUN chown -R www-data:www-data \
     /var/www/html/storage \
     /var/www/html/bootstrap/cache \
