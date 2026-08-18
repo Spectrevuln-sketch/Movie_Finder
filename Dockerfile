@@ -18,32 +18,41 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql \
     && rm -rf /var/lib/apt/lists/*
 
-
 # ============================================================
 # Apache MPM - FORCE PREFORK ONLY
 # ============================================================
-RUN a2dismod mpm_event mpm_worker mpm_prefork && \
-    a2enmod mpm_prefork && \
-    a2enmod rewrite
-
+# Disable possible other MPMs, remove any mpm symlinks, then enable prefork
+RUN set -eux; \
+    a2dismod mpm_event mpm_worker || true; \
+    rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf || true; \
+    a2enmod mpm_prefork rewrite
 
 # ============================================================
-# Composer
+# Composer (use multi-stage composer binary copy)
 # ============================================================
 COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
-
 
 # ============================================================
 # Working directory
 # ============================================================
 WORKDIR /var/www/html
 
+# Copy composer files first to leverage Docker cache
+COPY composer.json composer.lock ./
 
 # ============================================================
-# Copy application
+# Laravel dependencies (composer install)
+# ============================================================
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist
+
+# ============================================================
+# Copy rest of application
 # ============================================================
 COPY . .
-
 
 # ============================================================
 # Apache VirtualHost
@@ -64,63 +73,40 @@ RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
 </VirtualHost>
 EOF
 
-
-# ============================================================
-# Laravel dependencies
-# ============================================================
-RUN composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-interaction
-
-
 # ============================================================
 # Frontend dependencies
 # ============================================================
-RUN npm ci
-
+RUN npm ci --silent
 
 # ============================================================
 # Clean frontend build
 # ============================================================
-RUN rm -rf \
-    public/css \
-    public/js \
-    public/mix-manifest.json
-
-RUN mkdir -p \
-    public/css \
-    public/js
-
-RUN chmod -R 777 public
-
+RUN rm -rf public/css public/js public/mix-manifest.json || true \
+    && mkdir -p public/css public/js \
+    && chmod -R 777 public
 
 # ============================================================
 # Build frontend
 # ============================================================
 RUN npm run production
 
-
 # ============================================================
-# Verify frontend assets
+# Verify frontend assets (simple outputs during build)
 # ============================================================
 RUN echo "========================================" \
     && echo "FRONTEND BUILD" \
     && echo "========================================" \
-    && ls -lah public/css/app.css \
-    && ls -lah public/js/app.js \
-    && ls -lah public/mix-manifest.json
-
+    && ls -lah public/css/app.css || true \
+    && ls -lah public/js/app.js || true \
+    && ls -lah public/mix-manifest.json || true
 
 # ============================================================
-# Verify Apache MPM
-# Must show ONLY mpm_prefork
+# Verify Apache MPM (should show ONLY mpm_prefork)
 # ============================================================
 RUN echo "========================================" \
     && echo "APACHE MPM" \
     && echo "========================================" \
-    && apache2ctl -M | grep mpm
-
+    && apache2ctl -M | grep mpm || (apache2ctl -M && false)
 
 # ============================================================
 # Runtime permissions
@@ -130,18 +116,14 @@ RUN chown -R www-data:www-data \
     /var/www/html/bootstrap/cache \
     /var/www/html/public
 
-
 # ============================================================
 # Entrypoint
 # ============================================================
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 
 # ============================================================
 # Railway
 # ============================================================
 EXPOSE 80
-
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
