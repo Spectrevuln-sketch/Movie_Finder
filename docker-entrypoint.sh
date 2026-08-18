@@ -17,7 +17,8 @@ if [ -f /etc/apache2/ports.conf ]; then
 fi
 
 if [ -f /etc/apache2/sites-available/000-default.conf ]; then
-  sed -ri "s/:?[0-9]*\/?%?/:${PORT}/g" /etc/apache2/sites-available/000-default.conf || true
+  # Only replace the port number inside <VirtualHost *:PORT>
+  sed -ri "s/<VirtualHost \*:[0-9]+>/<VirtualHost *:${PORT}>/g" /etc/apache2/sites-available/000-default.conf || true
   # Also ensure DocumentRoot directory exists (avoid Apache failing to start)
   mkdir -p /var/www/html/public || true
 fi
