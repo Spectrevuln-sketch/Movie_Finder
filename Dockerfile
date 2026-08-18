@@ -33,10 +33,18 @@ RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm install
+RUN npm ci
 
 # Build assets as root to avoid permission errors
 RUN npm run production
+
+RUN echo "===== ASSET =====" \
+    && wc -c public/css/app.css \
+    && wc -c public/js/app.js \
+    && echo "===== CHECK TAILWIND =====" \
+    && grep -o '\.flex' public/css/app.css | head \
+    && grep -o '\.items-center' public/css/app.css | head \
+    && grep -o '\.bg-' public/css/app.css | head
 
 # Set permissions for runtime
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
