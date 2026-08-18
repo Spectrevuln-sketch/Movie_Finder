@@ -40,10 +40,7 @@
         "files": [
             "app/Core/Modules/module-autoload.php"
         ],
-        "classmap": [
-            "database/seeds",
-            "database/factories"
-        ]
+        "classmap": []
     },
     "autoload-dev": {
         "psr-4": {
