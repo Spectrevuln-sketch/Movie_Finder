@@ -33,12 +33,9 @@ RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN npm install
-RUN chown -R node:node .
 
-# Build assets as node user
-USER node
+# Build assets as root to avoid permission errors
 RUN npm run production
-USER root
 
 # Set permissions for runtime
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
