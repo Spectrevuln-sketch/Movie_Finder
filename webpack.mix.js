@@ -22,17 +22,4 @@ mix.webpackConfig({
             '@modules': path.resolve(__dirname, 'modules'),
         },
     },
-
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                loader: 'ts-loader',
-                options: {
-                    transpileOnly: true,
-                },
-                exclude: /node_modules/,
-            },
-        ],
-    },
 });
