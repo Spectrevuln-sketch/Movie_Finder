@@ -48,7 +48,7 @@ RUN rm -rf public/css public/js public/mix-manifest.json
 
 # Recreate writable directories
 RUN mkdir -p public/css public/js
-RUN chmod -R 777 public/css public/js
+RUN chmod -R 777 public
 
 # Build frontend
 RUN npm run production
