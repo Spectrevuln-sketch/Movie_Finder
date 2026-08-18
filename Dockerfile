@@ -1,58 +1,96 @@
 FROM php:7.4-apache
 
-# Install system dependencies
+ARG NODE_VERSION=16
+
+# ---------------------------------------------------------
+# System dependencies + PHP extensions
+# ---------------------------------------------------------
 RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    zip \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libpq-dev \
-    zip \
-    unzip \
-    git \
-    && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
     && apt-get install -y nodejs \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql \
-    && a2dismod mpm_event mpm_worker \
-    && a2enmod mpm_prefork rewrite
+    && docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+    gd \
+    pdo \
+    pdo_pgsql \
+    && a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork rewrite \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# ---------------------------------------------------------
+# Composer
+# ---------------------------------------------------------
+COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# ---------------------------------------------------------
+# Application
+# ---------------------------------------------------------
 WORKDIR /var/www/html
 
-# Copy application files
 COPY . .
 
-# Setup Apache DocumentRoot
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Setup permissions for build
-RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
+RUN sed -i \
+    's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' \
+    /etc/apache2/sites-available/000-default.conf
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm install
+RUN printf '%s\n' 'ServerName localhost' \
+    > /etc/apache2/conf-available/servername.conf \
+    && a2enconf servername
 
-# Build assets as root to avoid permission errors
+
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
+
+
+RUN npm ci
+
+# ---------------------------------------------------------
+# Production frontend build
+# ---------------------------------------------------------
 RUN npm run production
 
-# Set permissions for runtime
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
+# ---------------------------------------------------------
+# Verify compiled assets
+# ---------------------------------------------------------
+RUN test -f public/mix-manifest.json \
+    && test -f public/js/app.js \
+    && test -f public/css/app.css
 
-# Startup script to handle PORT and migration
-COPY <<EOF /usr/local/bin/docker-entrypoint.sh
-#!/bin/bash
-echo "ServerName localhost" >> /etc/apache2/apache2.conf
-a2dismod mpm_event mpm_worker >/dev/null 2>&1
-a2enmod mpm_prefork >/dev/null 2>&1
-sed -i "s/Listen 80/Listen \${PORT}/g" /etc/apache2/ports.conf
-sed -i "s/:80/:\${PORT}/g" /etc/apache2/sites-available/000-default.conf
-php artisan migrate --force
-exec apache2-foreground
-EOF
+# ---------------------------------------------------------
+# Runtime permissions
+# ---------------------------------------------------------
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache \
+    && chown -R www-data:www-data \
+    storage \
+    bootstrap/cache \
+    public \
+    && chmod -R ug+rwX \
+    storage \
+    bootstrap/cache
+
+# ---------------------------------------------------------
+# Railway entrypoint
+# ---------------------------------------------------------
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE ${PORT}
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
