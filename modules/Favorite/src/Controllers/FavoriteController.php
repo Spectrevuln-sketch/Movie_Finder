@@ -22,6 +22,7 @@ class FavoriteController extends Controller
 
         return Inertia::render('Favorite/favorite/index', [
             'favorites' => $favorites,
+            'locale' => app()->getLocale(),
         ]);
     }
 

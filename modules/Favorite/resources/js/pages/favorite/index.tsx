@@ -15,9 +15,21 @@ interface FavoriteProps {
 }
 
 export default function FavoriteIndex() {
-    const { favorites: initialFavorites } = usePage().props as unknown as FavoriteProps;
+    const { favorites: initialFavorites, locale } = usePage().props as unknown as FavoriteProps & { locale?: string };
     const [favorites, setFavorites] = useState<Favorite[]>(initialFavorites);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const currentLocale = locale || 'en';
+
+    const t: any = {
+        en: { movies: 'Movies', favorites: 'Favorites', myFavorites: 'My Favorites', saved: 'movies saved', noFavorites: 'No favorites yet.', explore: 'Explore Movies', remove: 'Remove', removing: 'Removing...' },
+        id: { movies: 'Film', favorites: 'Favorit', myFavorites: 'Favorit Saya', saved: 'film tersimpan', noFavorites: 'Belum ada favorit.', explore: 'Jelajahi Film', remove: 'Hapus', removing: 'Menghapus...' }
+    }[currentLocale];
+
+    const toggleLanguage = () => {
+        const next = currentLocale === 'en' ? 'id' : 'en';
+        axios.post('/locale', { locale: next }, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(() => window.location.reload());
+    };
 
     const removeFavorite = async (imdbId: string) => {
         setDeletingId(imdbId);
@@ -35,21 +47,27 @@ export default function FavoriteIndex() {
         <div className="min-h-screen bg-black text-gray-100 font-sans p-6">
             <nav className="flex justify-between items-center mb-10 max-w-7xl mx-auto">
                 <h1 className="text-2xl font-black text-red-600 uppercase tracking-tighter">Movie Finder</h1>
-                <div className="flex gap-6">
-                    <a href="/" className="hover:text-red-500">Movies</a>
-                    <a href="/favorites" className="text-red-500 font-bold">Favorites</a>
+                <div className="flex items-center gap-6">
+                    <a href="/" className="hover:text-red-500">{t.movies}</a>
+                    <a href="/favorites" className="text-red-500 font-bold">{t.favorites}</a>
+                    <button 
+                        onClick={toggleLanguage}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-bold uppercase transition cursor-pointer"
+                    >
+                        {currentLocale === 'en' ? 'ID (Indonesia)' : 'EN (English)'}
+                    </button>
                 </div>
             </nav>
 
             <header className="max-w-7xl mx-auto mb-10">
-                <h1 className="text-4xl font-extrabold mb-2">My Favorites</h1>
-                <p className="text-gray-400">{favorites.length} movies saved</p>
+                <h1 className="text-4xl font-extrabold mb-2">{t.myFavorites}</h1>
+                <p className="text-gray-400">{favorites.length} {t.saved}</p>
             </header>
 
             {favorites.length === 0 ? (
                 <div className="max-w-7xl mx-auto text-center py-20 bg-gray-900 rounded-lg">
-                    <p className="text-xl text-gray-400 mb-6">No favorites yet.</p>
-                    <a href="/" className="bg-red-600 px-8 py-3 rounded-full font-bold hover:bg-red-700 transition">Explore Movies</a>
+                    <p className="text-xl text-gray-400 mb-6">{t.noFavorites}</p>
+                    <a href="/" className="bg-red-600 px-8 py-3 rounded-full font-bold hover:bg-red-700 transition">{t.explore}</a>
                 </div>
             ) : (
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -64,7 +82,7 @@ export default function FavoriteIndex() {
                                     disabled={deletingId === m.imdb_id}
                                     className="w-full py-2 bg-gray-800 hover:bg-red-900 rounded text-xs font-bold uppercase transition disabled:opacity-50"
                                 >
-                                    {deletingId === m.imdb_id ? 'Removing...' : 'Remove'}
+                                    {deletingId === m.imdb_id ? t.removing : t.remove}
                                 </button>
                             </div>
                         </div>

@@ -23,7 +23,7 @@ export default function LazyImage({ src, alt, className }: Props) {
                 loading="lazy"
                 onLoad={() => setLoaded(true)}
                 onError={() => { setError(true); setLoaded(true); }}
-                className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}` + (className ? ` ${className}` : '')}
             />
         </div>
     );

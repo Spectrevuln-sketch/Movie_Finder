@@ -28,13 +28,13 @@ class MovieController extends Controller
         $error = null;
         $filters = ['s' => $search, 'type' => $type, 'y' => $year, 'page' => $page];
 
-        $data = $this->omdb->search($search, $type, $year, $page);
-
-        if ($data && isset($data['Response']) && $data['Response'] === 'True') {
-            $movies = $data['Search'] ?? [];
-            $total = (int) ($data['totalResults'] ?? 0);
-        } else {
-            $error = $data['Error'] ?? 'Unknown API error';
+        if ($request->ajax() || $request->wantsJson()) {
+            $response = $this->omdb->search($search, $type, $year, $page);
+            return response()->json([
+                'movies' => $response['Search'] ?? [],
+                'totalResults' => (int) ($response['totalResults'] ?? 0),
+                'error' => $response['Error'] ?? null,
+            ]);
         }
 
         return Inertia::render('Movie/movie/landing', [
@@ -42,6 +42,7 @@ class MovieController extends Controller
             'totalResults' => $total,
             'filters' => $filters,
             'error' => $error,
+            'locale' => app()->getLocale(),
         ]);
     }
 
@@ -64,6 +65,7 @@ class MovieController extends Controller
             'movies' => $movies,
             'totalResults' => $total,
             'filters' => ['s' => $search, 'type' => $type, 'y' => $year],
+            'locale' => app()->getLocale(),
         ]);
     }
 
@@ -107,6 +109,7 @@ class MovieController extends Controller
         return Inertia::render('Movie/movie/show', [
             'movie' => $data,
             'error' => $error,
+            'locale' => app()->getLocale(),
         ]);
     }
 }

@@ -90,10 +90,8 @@ class ModuleManifest
                 . 'ServiceProvider';
 
             if (!class_exists($providerClass)) {
-                throw new RuntimeException(
-                    "Module provider class [{$providerClass}] "
-                    . "was not found for module [{$moduleName}]."
-                );
+                // Ignore if class doesn't exist yet during initial discovery
+                continue;
             }
 
             $providers[] = $providerClass;

@@ -4,6 +4,16 @@ use Illuminate\Support\Facades\Route;
 use Modules\Movie\Controllers\MovieController;
 
 
+Route::middleware(['web'])->group(function () {
+    Route::post('/locale', function (\Illuminate\Http\Request $request) {
+        $locale = $request->input('locale');
+        if (in_array($locale, ['en', 'id'])) {
+            session(['locale' => $locale]);
+        }
+        return response()->json(['success' => true]);
+    });
+});
+
 Route::middleware(['web', 'module.auth'])->group(function () {
     Route::prefix('movies')->group(function () {
         Route::get('/api', [MovieController::class, 'getMovies'])->name('movies.api');

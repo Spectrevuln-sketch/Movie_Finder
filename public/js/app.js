@@ -286,9 +286,19 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 function FavoriteIndex() {
-    const { favorites: initialFavorites } = Object(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1__["usePage"])().props;
+    const { favorites: initialFavorites, locale } = Object(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1__["usePage"])().props;
     const [favorites, setFavorites] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(initialFavorites);
     const [deletingId, setDeletingId] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
+    const currentLocale = locale || 'en';
+    const t = {
+        en: { movies: 'Movies', favorites: 'Favorites', myFavorites: 'My Favorites', saved: 'movies saved', noFavorites: 'No favorites yet.', explore: 'Explore Movies', remove: 'Remove', removing: 'Removing...' },
+        id: { movies: 'Film', favorites: 'Favorit', myFavorites: 'Favorit Saya', saved: 'film tersimpan', noFavorites: 'Belum ada favorit.', explore: 'Jelajahi Film', remove: 'Hapus', removing: 'Menghapus...' }
+    }[currentLocale];
+    const toggleLanguage = () => {
+        const next = currentLocale === 'en' ? 'id' : 'en';
+        axios__WEBPACK_IMPORTED_MODULE_2___default.a.post('/locale', { locale: next }, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(() => window.location.reload());
+    };
     const removeFavorite = (imdbId) => __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
         setDeletingId(imdbId);
@@ -306,17 +316,19 @@ function FavoriteIndex() {
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "min-h-screen bg-black text-gray-100 font-sans p-6" },
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("nav", { className: "flex justify-between items-center mb-10 max-w-7xl mx-auto" },
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", { className: "text-2xl font-black text-red-600 uppercase tracking-tighter" }, "Movie Finder"),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex gap-6" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "hover:text-red-500" }, "Movies"),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/favorites", className: "text-red-500 font-bold" }, "Favorites"))),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-6" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "hover:text-red-500" }, t.movies),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/favorites", className: "text-red-500 font-bold" }, t.favorites),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { onClick: toggleLanguage, className: "px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-bold uppercase transition cursor-pointer" }, currentLocale === 'en' ? 'ID (Indonesia)' : 'EN (English)'))),
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("header", { className: "max-w-7xl mx-auto mb-10" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", { className: "text-4xl font-extrabold mb-2" }, "My Favorites"),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", { className: "text-4xl font-extrabold mb-2" }, t.myFavorites),
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-gray-400" },
                 favorites.length,
-                " movies saved")),
+                " ",
+                t.saved)),
         favorites.length === 0 ? (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "max-w-7xl mx-auto text-center py-20 bg-gray-900 rounded-lg" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-xl text-gray-400 mb-6" }, "No favorites yet."),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "bg-red-600 px-8 py-3 rounded-full font-bold hover:bg-red-700 transition" }, "Explore Movies"))) : (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6" }, favorites.map(m => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { key: m.imdb_id, className: "bg-gray-900 rounded-lg overflow-hidden group hover:scale-105 transition duration-300 shadow-xl relative" },
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-xl text-gray-400 mb-6" }, t.noFavorites),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "bg-red-600 px-8 py-3 rounded-full font-bold hover:bg-red-700 transition" }, t.explore))) : (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6" }, favorites.map(m => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { key: m.imdb_id, className: "bg-gray-900 rounded-lg overflow-hidden group hover:scale-105 transition duration-300 shadow-xl relative" },
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("img", { src: m.poster !== 'N/A' ? m.poster : 'https://via.placeholder.com/300x450', alt: m.title, className: "w-full h-72 object-cover" }),
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "p-4" },
                 react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", { className: "font-bold truncate text-sm mb-1" }, m.title),
@@ -324,8 +336,39 @@ function FavoriteIndex() {
                     m.year,
                     " \u2022 ",
                     react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "uppercase" }, m.type)),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { onClick: () => removeFavorite(m.imdb_id), disabled: deletingId === m.imdb_id, className: "w-full py-2 bg-gray-800 hover:bg-red-900 rounded text-xs font-bold uppercase transition disabled:opacity-50" }, deletingId === m.imdb_id ? 'Removing...' : 'Remove')))))))));
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { onClick: () => removeFavorite(m.imdb_id), disabled: deletingId === m.imdb_id, className: "w-full py-2 bg-gray-800 hover:bg-red-900 rounded text-xs font-bold uppercase transition disabled:opacity-50" }, deletingId === m.imdb_id ? t.removing : t.remove)))))))));
 }
+
+
+/***/ }),
+
+/***/ "./modules/Movie/resources/js/components/movie/HeroBanner.tsx":
+/*!********************************************************************!*\
+  !*** ./modules/Movie/resources/js/components/movie/HeroBanner.tsx ***!
+  \********************************************************************/
+/*! exports provided: HeroBanner */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "HeroBanner", function() { return HeroBanner; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _LazyImage__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./LazyImage */ "./modules/Movie/resources/js/components/movie/LazyImage.tsx");
+
+
+const HeroBanner = ({ movie, t }) => {
+    if (!movie)
+        return null;
+    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative w-full h-[50vh] overflow-hidden mb-12 rounded-xl border border-white/5 p-4" },
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LazyImage__WEBPACK_IMPORTED_MODULE_1__["default"], { src: movie.Poster, alt: movie.Title, className: "w-auto h-[20px] float-right" }),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/60 to-transparent flex flex-col justify-end p-8" },
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "max-w-xl space-y-2" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", { className: "text-4xl font-black text-white" }, movie.Title),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-gray-300 text-sm" }, t.popularChoice),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex gap-3 pt-2" },
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: `/movies/${movie.imdbID}`, className: "bg-white text-black px-6 py-2 rounded-md font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition" }, t.play))))));
+};
 
 
 /***/ }),
@@ -349,8 +392,34 @@ function LazyImage({ src, alt, className }) {
     const imageUrl = (src === 'N/A' || error) ? 'https://via.placeholder.com/300x450?text=No+Poster' : src;
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: `relative overflow-hidden bg-[#111318] ${className}` },
         !loaded && !error && (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-0 animate-pulse bg-[#171A21]" })),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("img", { src: imageUrl, alt: alt, loading: "lazy", onLoad: () => setLoaded(true), onError: () => { setError(true); setLoaded(true); }, className: `w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}` })));
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("img", { src: imageUrl, alt: alt, loading: "lazy", onLoad: () => setLoaded(true), onError: () => { setError(true); setLoaded(true); }, className: `w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}` + (className ? ` ${className}` : '') })));
 }
+
+
+/***/ }),
+
+/***/ "./modules/Movie/resources/js/components/movie/MovieSection.tsx":
+/*!**********************************************************************!*\
+  !*** ./modules/Movie/resources/js/components/movie/MovieSection.tsx ***!
+  \**********************************************************************/
+/*! exports provided: MovieSection */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MovieSection", function() { return MovieSection; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _LazyImage__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./LazyImage */ "./modules/Movie/resources/js/components/movie/LazyImage.tsx");
+
+
+const MovieSection = ({ title, type, movies, t }) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("section", { className: "mb-12 px-6" },
+    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex justify-between items-center mb-6" },
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", { className: "text-2xl font-bold text-white tracking-tight" }, title),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: `/movies?mode=all&type=${type}`, className: "text-[#E50914] hover:text-white transition-colors text-sm font-bold uppercase" }, t.seeMore)),
+    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" }, movies.map(m => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { key: m.imdbID, href: `/movies/${m.imdbID}`, className: "group relative block aspect-[2/3] rounded-lg overflow-hidden bg-gray-900 border border-white/5 transition-all hover:scale-105" },
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LazyImage__WEBPACK_IMPORTED_MODULE_1__["default"], { src: m.Poster, alt: m.Title, className: "w-full h-full object-cover" }),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute top-2 left-2 bg-black/50 p-1.5 rounded text-white" }, "+")))))));
 
 
 /***/ }),
@@ -497,22 +566,20 @@ function ThreeBackground() {
 
 /***/ }),
 
-/***/ "./modules/Movie/resources/js/hooks/useLanding.ts":
-/*!********************************************************!*\
-  !*** ./modules/Movie/resources/js/hooks/useLanding.ts ***!
-  \********************************************************/
-/*! exports provided: useLanding */
+/***/ "./modules/Movie/resources/js/hooks/useLandingSections.ts":
+/*!****************************************************************!*\
+  !*** ./modules/Movie/resources/js/hooks/useLandingSections.ts ***!
+  \****************************************************************/
+/*! exports provided: useLandingSections */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "useLanding", function() { return useLanding; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "useLandingSections", function() { return useLandingSections; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @inertiajs/inertia */ "./node_modules/@inertiajs/inertia/dist/index.js");
-/* harmony import */ var _inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -524,74 +591,33 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 };
 
 
-
-const useLanding = () => {
-    const initialFilters = {
-        s: '',
-        type: '',
-        y: '',
-    };
-    const initialState = {
-        favorites: [],
-    };
-    const [state, setState] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(initialState);
-    const [processing, setProcessing] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
-    const [form, setFormState] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(initialFilters);
-    Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
-        getFavorites();
-    }, []);
-    const getFavorites = () => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            const response = yield axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/favorites/all');
-            if (response.status === 200) {
-                const data = yield response.data;
-                setState({ favorites: data });
+const useLandingSections = () => {
+    const [sections, setSections] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])({ movie: [], series: [], episode: [] });
+    const [loading, setLoading] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(true);
+    const fetchPreviews = () => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        setLoading(true);
+        const types = ['movie', 'series', 'episode'];
+        const results = {};
+        for (const type of types) {
+            try {
+                const res = yield axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/movies/api', {
+                    params: { s: 'Avengers', type, page: 1 },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                results[type] = ((_a = res.data.movies) === null || _a === void 0 ? void 0 : _a.slice(0, 6)) || [];
+            }
+            catch (e) {
+                results[type] = [];
             }
         }
-        catch (error) {
-            console.error('Failed to fetch favorites:', error);
-        }
+        setSections(results);
+        setLoading(false);
     });
-    const setForm = (value) => {
-        setFormState(value);
-    };
-    const submit = (event) => {
-        event.preventDefault();
-        setProcessing(true);
-        _inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1__["Inertia"].get('/', { s: form.s, type: form.type, y: form.y }, {
-            preserveState: true,
-            onFinish: () => {
-                setProcessing(false);
-            },
-        });
-    };
-    const reset = () => {
-        const resetFilters = { s: '', type: '', y: '' };
-        setForm(resetFilters);
-        _inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1__["Inertia"].get('/', resetFilters, { preserveState: true });
-    };
-    const addFavorite = (movie) => {
-        _inertiajs_inertia__WEBPACK_IMPORTED_MODULE_1__["Inertia"].post('/favorites', {
-            imdb_id: movie.imdbID || movie.imdb_id,
-            title: movie.Title || movie.title,
-            year: movie.Year || movie.year,
-            type: movie.Type || movie.type,
-            poster: movie.Poster || movie.poster,
-        }, {
-            preserveState: true,
-            onSuccess: () => alert('Added to favorites!'),
-            onError: (errors) => alert(errors.error || 'Failed to add favorite'),
-        });
-    };
-    return {
-        processing,
-        form,
-        setForm,
-        submit,
-        reset,
-        addFavorite,
-        state
-    };
+    Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+        fetchPreviews();
+    }, []);
+    return { sections, loading };
 };
 
 
@@ -732,34 +758,33 @@ function MovieIndex() {
     };
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "min-h-screen bg-[#030303] text-white font-sans relative overflow-x-hidden" },
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_5__["default"], null),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("nav", { className: "fixed w-full z-50 flex items-center justify-between px-8 h-16 bg-[#030303]/90 backdrop-blur-md border-b border-white/[0.08]" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-2" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "bg-[#E50914] text-white px-2 py-0.5 rounded font-black text-xl shadow-lg shadow-[#E50914]/30" }, "M"),
-                "Movie Finder"),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-8 font-medium text-sm" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].a, { href: "/", whileHover: { scale: 1.05 }, className: "relative text-white font-semibold py-1" },
-                    "Movies",
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "absolute bottom-0 left-0 w-full h-0.5 bg-[#E50914] rounded-full" })),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].a, { href: "/favorites", whileHover: { scale: 1.05 }, className: "text-white hover:text-white transition-colors" }, "Favorites"),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("nav", { className: "fixed w-full z-50 flex items-center justify-between px-8 py-6 bg-black/50 backdrop-blur-xl border-b border-white/5" },
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "text-xl font-bold tracking-tighter text-white uppercase tracking-widest" }, "MovieFinder"),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-8 font-medium text-sm text-gray-400" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "hover:text-white transition-colors" }, "Movies"),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/favorites", className: "hover:text-white transition-colors" }, "Favorites"),
                 react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", { action: "/logout", method: "POST" },
                     react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "hidden", name: "_token", value: ((_a = document.querySelector('meta[name="csrf-token"]')) === null || _a === void 0 ? void 0 : _a.content) || '' }),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].button, { type: "submit", whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, className: "text-white hover:text-white transition-colors cursor-pointer" }, "Logout")))),
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { type: "submit", className: "hover:text-white transition-colors uppercase tracking-widest text-xs font-bold" }, "Logout")))),
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("main", { className: "pt-24 px-8 max-w-7xl mx-auto pb-20 relative z-10" },
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5 }, className: "mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6 bg-gradient-to-r from-[#080A0F] to-[#0E1117] p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden backdrop-blur-sm", style: { background: 'linear-gradient(to right, rgba(8,10,15,0.9), rgba(14,17,23,0.9)), rgba(0,0,0,0.25)' } },
                 react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute right-0 top-0 w-96 h-96 bg-[#E50914]/5 rounded-full blur-3xl pointer-events-none" }),
                 react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative z-10 bg-black/25 p-4 rounded-xl -m-4" },
                     react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", { className: "text-4xl md:text-5xl font-black tracking-tight text-white mb-2" }, "Discover"),
                     react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-white text-base max-w-xl font-medium" }, "Find your next favorite movie, series, or episode.")),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "w-full md:w-96 relative z-10" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white" },
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", { className: "w-5 h-5", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative w-full md:w-96 gap-4" },
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10" },
+                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", { className: "w-5 h-5 text-gray-500", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
                             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" }))),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "text", value: filters.s, onChange: (e) => updateFilter('s', e.target.value), placeholder: "Search movies, series...", className: "w-full bg-[#030303] border border-white/[0.15] text-white pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:border-[#E50914]/80 focus:ring-1 focus:ring-[#E50914]/80 transition-all text-sm placeholder-[#CBD5E1]" }))),
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "text", value: filters.s, onChange: (e) => updateFilter('s', e.target.value), placeholder: "Search movies, series...", className: "\n                                w-full\n                                h-12\n                                bg-[#030303]\n                                border border-white/[0.15]\n                                text-gray-700\n                                pl-12\n                                pr-4\n                                rounded-xl\n                                focus:outline-none\n                                focus:border-[#E50914]/80\n                                focus:ring-1\n                                focus:ring-[#E50914]/80\n                                transition-all\n                                text-sm\n                                placeholder:text-[#CBD5E1]\n                            " }))),
             react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].div, { initial: { opacity: 0, y: 15 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.1 }, className: "flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 bg-[#080A0F]/90 backdrop-blur-md p-4 rounded-xl border border-white/[0.08]" },
                 react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex flex-wrap items-center gap-3" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex bg-[#030303] p-1 rounded-lg border border-white/[0.15]" }, ['movie', 'series', 'episode'].map((t) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].button, { key: t, onClick: () => updateFilter('type', t), whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, className: `px-4 py-1.5 rounded-md text-xs font-semibold capitalize transition-all duration-300 ${filters.type === t
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex bg-[#030303] p-1 rounded-lg border border-white/[0.15]" }, ['movie', 'series', 'episode'].map((type) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].button, { key: type, onClick: () => updateFilter('type', type), whileHover: {
+                            scale: 1.05,
+                            backgroundColor: filters.type === type ? '#E50914' : '#2F2F2F',
+                        }, whileTap: { scale: 0.95 }, className: `px-4 py-1.5 rounded-md text-xs font-semibold capitalize transition-all duration-300 ${filters.type === type
                             ? 'bg-gradient-to-r from-[#E50914] to-[#B20710] text-white shadow-lg'
-                            : 'bg-[#181818] text-white hover:bg-[#2F2F2F]'}` }, t)))),
+                            : 'bg-[#181818] text-white hover:bg-[#2F2F2F]'}` }, type)))),
                     react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center bg-[#030303] border border-white/[0.15] rounded-lg px-3 py-1.5" },
                         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "text-white font-bold uppercase mr-2" }, "Year"),
                         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "number", value: filters.y || '', onChange: (e) => updateFilter('y', e.target.value), placeholder: "Any", className: "w-20 bg-transparent text-white text-xs focus:outline-none placeholder-[#CBD5E1]" })),
@@ -775,15 +800,13 @@ function MovieIndex() {
                     filters.s && (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "px-3 py-1.5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] rounded-lg text-xs font-medium text-white" },
                         "query: ",
                         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("strong", { className: "text-white" }, filters.s))))),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" }, movies.map((m, i) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].a, { key: `${m.imdbID}-${i}`, ref: i === movies.length - 1 ? lastElementRef : null, href: `/movies/${m.imdbID}`, initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, delay: (i % 10) * 0.04 }, whileHover: { y: -5 }, className: "group relative bg-[#101318] rounded-xl overflow-hidden border border-white/[0.08] shadow-lg transition-all duration-300 block hover:border-white/[0.2] hover:shadow-2xl hover:shadow-[#E50914]/10 cursor-pointer" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "aspect-[2/3] overflow-hidden relative bg-[#030303]" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_LazyImage__WEBPACK_IMPORTED_MODULE_4__["default"], { src: m.Poster, alt: m.Title, className: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" }),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-0 bg-gradient-to-t from-[#101318] via-transparent to-transparent opacity-90" })),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "p-4 relative -mt-14 z-10 bg-gradient-to-t from-[#101318] via-[#101318]/95 to-transparent pt-6" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", { className: "font-bold text-white truncate text-sm mb-1 group-hover:text-[#E50914] transition-colors" }, m.Title),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center justify-between text-xs font-medium text-white" },
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "uppercase tracking-wider" }, m.Year),
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "px-2 py-0.5 bg-[rgba(255,255,255,0.08)] rounded border border-[rgba(255,255,255,0.15)] capitalize text-[10px] text-white" }, m.Type))))))))));
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6" }, movies.map((m, i) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_1__["motion"].a, { key: `${m.imdbID}-${i}`, ref: i === movies.length - 1 ? lastElementRef : null, href: `/movies/${m.imdbID}`, initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, delay: (i % 12) * 0.05 }, className: "group relative block aspect-[2/3] rounded-lg overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-2xl" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_LazyImage__WEBPACK_IMPORTED_MODULE_4__["default"], { src: m.Poster, alt: m.Title, className: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" }),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4" },
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", { className: "font-bold text-white text-sm line-clamp-2" }, m.Title),
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-2 mt-2 text-gray-400 text-xs" },
+                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", null, m.Year),
+                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "capitalize px-1.5 py-0.5 rounded bg-white/10 text-[10px]" }, m.Type))))))))));
 }
 
 
@@ -801,23 +824,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MovieLanding; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _hooks_useLanding__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../hooks/useLanding */ "./modules/Movie/resources/js/hooks/useLanding.ts");
-/* harmony import */ var _inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @inertiajs/inertia-react */ "./node_modules/@inertiajs/inertia-react/dist/index.js");
-/* harmony import */ var _inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var framer_motion__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! framer-motion */ "./node_modules/framer-motion/dist/es/index.js");
-/* harmony import */ var _components_movie_LazyImage__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/movie/LazyImage */ "./modules/Movie/resources/js/components/movie/LazyImage.tsx");
-/* harmony import */ var _components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../components/movie/ThreeBackground */ "./modules/Movie/resources/js/components/movie/ThreeBackground.tsx");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+/* harmony import */ var _inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @inertiajs/inertia-react */ "./node_modules/@inertiajs/inertia-react/dist/index.js");
+/* harmony import */ var _inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _hooks_useLandingSections__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../hooks/useLandingSections */ "./modules/Movie/resources/js/hooks/useLandingSections.ts");
+/* harmony import */ var _components_movie_HeroBanner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/movie/HeroBanner */ "./modules/Movie/resources/js/components/movie/HeroBanner.tsx");
+/* harmony import */ var _components_movie_MovieSection__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../components/movie/MovieSection */ "./modules/Movie/resources/js/components/movie/MovieSection.tsx");
+/* harmony import */ var _components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/movie/ThreeBackground */ "./modules/Movie/resources/js/components/movie/ThreeBackground.tsx");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_6__);
 
 
 
@@ -827,76 +841,55 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 function MovieLanding() {
     var _a;
-    const { movies: initialMovies, totalResults, filters, error: initialError } = Object(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_2__["usePage"])().props;
-    const { processing, form, setForm, submit, reset, addFavorite, state, } = Object(_hooks_useLanding__WEBPACK_IMPORTED_MODULE_1__["useLanding"])();
-    const [isLanding, setIsLanding] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(true);
-    const [sections, setSections] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])({ movie: [], series: [], episode: [] });
-    Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
-        fetchPreviews();
-    }, []);
-    const fetchPreviews = () => __awaiter(this, void 0, void 0, function* () {
-        var _b;
-        const types = ['movie', 'series', 'episode'];
-        const results = {};
-        for (const type of types) {
-            const res = yield axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/movies/api', { params: { s: 'Avengers', type, page: 1 }, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            results[type] = ((_b = res.data.movies) === null || _b === void 0 ? void 0 : _b.slice(0, 6)) || [];
+    const { sections } = Object(_hooks_useLandingSections__WEBPACK_IMPORTED_MODULE_2__["useLandingSections"])();
+    const { locale } = Object(_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_1__["usePage"])().props;
+    const currentLocale = locale || 'en';
+    const translations = {
+        en: {
+            favorites: 'Favorites',
+            trends: 'Trends',
+            movies: 'Movies',
+            series: 'Series',
+            episodes: 'Episodes',
+            play: 'Play',
+            seeMore: 'See More',
+            popularChoice: 'Popular choice for movie enthusiasts.',
+            logout: 'Logout'
+        },
+        id: {
+            favorites: 'Favorit',
+            trends: 'Sedang Tren',
+            movies: 'Film',
+            series: 'Serial',
+            episodes: 'Episode',
+            play: 'Putar',
+            seeMore: 'Lihat Semua',
+            popularChoice: 'Pilihan populer bagi para pecinta film.',
+            logout: 'Keluar'
         }
-        setSections(results);
-    });
-    const renderSection = (title, type, movies) => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("section", { className: "mb-16" },
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex justify-between items-center mb-8 px-2" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", { className: "text-3xl font-black text-white tracking-tight" }, title),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: `/movies?mode=all&type=${type}`, className: "text-white hover:text-[#E50914] font-bold text-sm transition-colors uppercase tracking-widest flex items-center gap-2 group" },
-                "Show All",
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", { className: "w-4 h-4 transform group-hover:translate-x-1 transition-transform", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M9 5l7 7-7 7" })))),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "grid grid-cols-2 md:grid-cols-6 gap-6" }, movies.map(m => (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { key: m.imdbID, href: `/movies/${m.imdbID}`, className: "group relative bg-[#181818] rounded-md overflow-hidden hover:scale-105 transition-all duration-300 block shadow-xl" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "aspect-[2/3] overflow-hidden bg-[#181818]" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_LazyImage__WEBPACK_IMPORTED_MODULE_5__["default"], { src: m.Poster, alt: m.Title, className: "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" })),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "p-3" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", { className: "font-semibold text-white truncate text-sm mb-1" }, m.Title),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-[#808080] text-xs font-medium uppercase tracking-wider" }, m.Year))))))));
-    if (isLanding) {
-        return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "min-h-screen bg-[#030303] text-white font-sans p-6 md:p-12 relative" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_6__["default"], null),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative z-10" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center justify-between mb-16" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "text-3xl font-black text-[#E50914] tracking-tighter uppercase flex items-center gap-2" },
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "bg-[#E50914] text-white px-2 py-0.5 rounded font-black text-2xl" }, "M"),
-                        "Movie Finder"),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { onClick: () => setIsLanding(false), className: "text-white bg-[#181818] hover:bg-[#E50914] transition-colors px-6 py-2 rounded font-bold uppercase text-xs tracking-widest" }, "Enter Search")),
-                renderSection('Movies', 'movie', sections.movie),
-                renderSection('Series', 'series', sections.series),
-                renderSection('Episodes', 'episode', sections.episode))));
-    }
-    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "min-h-screen bg-[#030303] text-white font-sans relative" },
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_6__["default"], null),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative z-10" },
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("nav", { className: "fixed w-full z-50 flex items-center justify-between px-8 py-4 bg-[#030303]/90 backdrop-blur-md border-b border-white/[0.08]" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "text-2xl font-black text-[#E50914] tracking-tighter uppercase flex items-center gap-2" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "bg-[#E50914] text-white px-2 py-0.5 rounded font-black text-xl" }, "M"),
-                    "Movie Finder"),
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-6 font-medium text-sm" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/", className: "text-white hover:text-[#E50914] transition-colors" }, "Movies"),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/favorites", className: "text-white hover:text-[#E50914] transition-colors" }, "Favorites"),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", { action: "/logout", method: "POST" },
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "hidden", name: "_token", value: ((_a = document.querySelector('meta[name="csrf-token"]')) === null || _a === void 0 ? void 0 : _a.content) || '' }),
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { type: "submit", className: "text-white hover:text-[#E50914] transition-colors uppercase tracking-widest text-xs font-bold" }, "Logout")))),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("header", { className: "relative pt-40 pb-20 px-6 max-w-7xl mx-auto text-center" },
-                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "max-w-3xl mx-auto space-y-6" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", { className: "text-5xl md:text-7xl font-black tracking-tight text-white leading-tight" },
-                        "Discover your next ",
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", { className: "text-transparent bg-clip-text bg-gradient-to-r from-[#E50914] to-[#B20710]" }, "favorite movie"),
-                        "."),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", { className: "text-lg text-white max-w-xl mx-auto" }, "Explore thousands of movies, series, and episodes."),
-                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", { onSubmit: submit, className: "flex gap-2 bg-[#181818] p-2 rounded-md border border-white/[0.1] shadow-2xl max-w-2xl mx-auto focus-within:border-[#E50914] transition-colors" },
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "text", value: form.s, onChange: e => setForm(Object.assign(Object.assign({}, form), { s: e.target.value })), placeholder: "Search titles, actors, genres...", className: "w-full bg-transparent px-6 py-3 text-white placeholder-[#808080] focus:outline-none text-base font-medium" }),
-                        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(framer_motion__WEBPACK_IMPORTED_MODULE_4__["motion"].button, { type: "submit", disabled: processing, whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, className: "bg-gradient-to-r from-[#E50914] to-[#B20710] text-white px-8 py-3 rounded-sm font-bold uppercase text-sm tracking-widest transition-all shadow-lg shadow-[#E50914]/20" }, processing ? 'Searching...' : 'Search')))),
-            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("main", { className: "max-w-7xl mx-auto px-6 pb-24 space-y-16" },
-                renderSection('Movies', 'movie', sections.movie),
-                renderSection('Series', 'series', sections.series),
-                renderSection('Episodes', 'episode', sections.episode)))));
+    };
+    const t = translations[currentLocale] || translations.en;
+    const toggleLanguage = () => {
+        const next = currentLocale === 'en' ? 'id' : 'en';
+        axios__WEBPACK_IMPORTED_MODULE_6___default.a.post('/locale', { locale: next }, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(() => window.location.reload());
+    };
+    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "min-h-screen bg-[#030303] text-white font-sans relative overflow-x-hidden" },
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_ThreeBackground__WEBPACK_IMPORTED_MODULE_5__["default"], null),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("nav", { className: "fixed top-0 w-full z-50 flex items-center justify-between px-8 py-6 bg-black/50 backdrop-blur-xl border-b border-white/5" },
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "text-xl font-bold tracking-tighter text-white uppercase tracking-widest" }, "MovieFinder"),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "flex items-center gap-4" },
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { onClick: toggleLanguage, className: "px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-bold uppercase transition cursor-pointer" }, currentLocale === 'en' ? 'ID (Indonesia)' : 'EN (English)'),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", { href: "/favorites", className: "text-gray-400 hover:text-white transition-colors text-sm font-medium" }, t.favorites),
+                react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", { action: "/logout", method: "POST", className: "inline" },
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", { type: "hidden", name: "_token", value: ((_a = document.querySelector('meta[name="csrf-token"]')) === null || _a === void 0 ? void 0 : _a.content) || '' }),
+                    react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", { type: "submit", className: "text-gray-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wider" }, t.logout)))),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", { className: "relative z-10 pt-24 max-w-7xl mx-auto px-6" },
+            sections.movie.length > 0 && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_HeroBanner__WEBPACK_IMPORTED_MODULE_3__["HeroBanner"], { movie: sections.movie[0], t: t }),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_MovieSection__WEBPACK_IMPORTED_MODULE_4__["MovieSection"], { title: t.trends, type: "movie", movies: sections.movie, t: t }),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_MovieSection__WEBPACK_IMPORTED_MODULE_4__["MovieSection"], { title: t.movies, type: "movie", movies: sections.movie, t: t }),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_MovieSection__WEBPACK_IMPORTED_MODULE_4__["MovieSection"], { title: t.series, type: "series", movies: sections.series, t: t }),
+            react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_movie_MovieSection__WEBPACK_IMPORTED_MODULE_4__["MovieSection"], { title: t.episodes, type: "episode", movies: sections.episode, t: t }))));
 }
 
 
