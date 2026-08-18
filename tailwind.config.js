@@ -1,11 +1,17 @@
 module.exports = {
-    content: [
-        './resources/views/**/*.blade.php',
-        './resources/js/**/*.{js,jsx,ts,tsx}',
-        './modules/**/resources/js/**/*.{js,jsx,ts,tsx}',
+    purge: [
+        './resources/**/*.blade.php',
+        './resources/**/*.{js,jsx,ts,tsx}',
+
+        './modules/**/*.blade.php',
+        './modules/**/*.{js,jsx,ts,tsx}',
     ],
 
     theme: {
+        extend: {},
+    },
+
+    variants: {
         extend: {},
     },
 
