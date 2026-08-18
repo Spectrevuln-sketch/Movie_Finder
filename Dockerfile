@@ -1,96 +1,48 @@
 FROM php:7.4-apache
 
-ARG NODE_VERSION=16
-
-# ---------------------------------------------------------
-# System dependencies + PHP extensions
-# ---------------------------------------------------------
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    unzip \
-    zip \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libpq-dev \
-    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    zip \
+    unzip \
+    git \
+    && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get install -y nodejs \
-    && docker-php-ext-configure gd \
-    --with-freetype \
-    --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" \
-    gd \
-    pdo \
-    pdo_pgsql \
-    && a2dismod mpm_event mpm_worker || true \
-    && a2enmod mpm_prefork rewrite \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql \
+    && a2dismod mpm_event mpm_worker \
+    && a2enmod mpm_prefork rewrite
 
-# ---------------------------------------------------------
-# Composer
-# ---------------------------------------------------------
-COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# ---------------------------------------------------------
-# Application
-# ---------------------------------------------------------
+# Set working directory
 WORKDIR /var/www/html
 
+# Copy application files
 COPY . .
 
+# Setup Apache DocumentRoot
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-RUN sed -i \
-    's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' \
-    /etc/apache2/sites-available/000-default.conf
+# Setup permissions for build
+RUN mkdir -p public/build && chown -R www-data:www-data /var/www/html
 
-RUN printf '%s\n' 'ServerName localhost' \
-    > /etc/apache2/conf-available/servername.conf \
-    && a2enconf servername
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN npm install
 
-
-RUN composer install \
-    --no-dev \
-    --no-interaction \
-    --prefer-dist \
-    --optimize-autoloader
-
-
-RUN npm ci
-
-# ---------------------------------------------------------
-# Production frontend build
-# ---------------------------------------------------------
+# Build assets as root to avoid permission errors
 RUN npm run production
 
-# ---------------------------------------------------------
-# Verify compiled assets
-# ---------------------------------------------------------
-RUN test -f public/mix-manifest.json \
-    && test -f public/js/app.js \
-    && test -f public/css/app.css
+# Set permissions for runtime
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 
-# ---------------------------------------------------------
-# Runtime permissions
-# ---------------------------------------------------------
-RUN mkdir -p \
-    storage/framework/cache \
-    storage/framework/sessions \
-    storage/framework/views \
-    bootstrap/cache \
-    && chown -R www-data:www-data \
-    storage \
-    bootstrap/cache \
-    public \
-    && chmod -R ug+rwX \
-    storage \
-    bootstrap/cache
-
-# ---------------------------------------------------------
-# Railway entrypoint
-# ---------------------------------------------------------
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+EXPOSE ${PORT}
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
